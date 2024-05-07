@@ -5,14 +5,6 @@ rowSumsC <- function(x) {
     .Call(`_MFClust_rowSumsC`, x)
 }
 
-MarginalLL_v_func <- function(N, NG, K_v, std_data, mu_GK, sigma_Gv, pK) {
-    .Call(`_MFClust_MarginalLL_v_func`, N, NG, K_v, std_data, mu_GK, sigma_Gv, pK)
-}
-
-ConditionalLL_ls_func <- function(N, NG, V, K, std_data, pVK, mu_GK_V, sigma_GV) {
-    .Call(`_MFClust_ConditionalLL_ls_func`, N, NG, V, K, std_data, pVK, mu_GK_V, sigma_GV)
-}
-
 mat_to_list <- function(m, V, K) {
     .Call(`_MFClust_mat_to_list`, m, V, K)
 }

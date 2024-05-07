@@ -64,7 +64,6 @@ A list object
  \item{\code{postNK_V}}{posterior cluster assignment for every sample in each facet}
  \item{\code{R2_cutoff}}{genes/features whose fitted R2 is smaller than this value will be labeled as non-clusterable genes and do not belong to any facet.}
  \item{\code{avgLLik_selected_soft_sepV}}{the average likelihood of selected genes in each facet}
- \item{\code{avgR2_selected_soft_sepV}} {the average R2 of selected genes in each facet}
  \item{\code{criterion}} {a record of parameter changes throughout the EM runs}
 }
 }

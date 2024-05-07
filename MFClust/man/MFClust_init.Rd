@@ -31,6 +31,6 @@ Initialization of the model-based multi-facet clustering algorithm
 \dontrun{
 data(BA11_BA47_NG2000)
 init.ls = MFClust_init(std.data=BA11_BA47_NG2000, V=5, G.K=20, initial.kmin=100,
-R2_cutoff = 0.22, seed = 9)
+R2_cutoff = 0.26, seed = 9)
 }
 }

@@ -22,41 +22,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// MarginalLL_v_func
-NumericMatrix MarginalLL_v_func(int N, int NG, int K_v, NumericMatrix std_data, NumericMatrix mu_GK, NumericVector sigma_Gv, NumericVector pK);
-RcppExport SEXP _MFClust_MarginalLL_v_func(SEXP NSEXP, SEXP NGSEXP, SEXP K_vSEXP, SEXP std_dataSEXP, SEXP mu_GKSEXP, SEXP sigma_GvSEXP, SEXP pKSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type N(NSEXP);
-    Rcpp::traits::input_parameter< int >::type NG(NGSEXP);
-    Rcpp::traits::input_parameter< int >::type K_v(K_vSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type std_data(std_dataSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type mu_GK(mu_GKSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type sigma_Gv(sigma_GvSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type pK(pKSEXP);
-    rcpp_result_gen = Rcpp::wrap(MarginalLL_v_func(N, NG, K_v, std_data, mu_GK, sigma_Gv, pK));
-    return rcpp_result_gen;
-END_RCPP
-}
-// ConditionalLL_ls_func
-List ConditionalLL_ls_func(int N, int NG, int V, NumericVector K, NumericMatrix std_data, List pVK, List mu_GK_V, NumericMatrix sigma_GV);
-RcppExport SEXP _MFClust_ConditionalLL_ls_func(SEXP NSEXP, SEXP NGSEXP, SEXP VSEXP, SEXP KSEXP, SEXP std_dataSEXP, SEXP pVKSEXP, SEXP mu_GK_VSEXP, SEXP sigma_GVSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type N(NSEXP);
-    Rcpp::traits::input_parameter< int >::type NG(NGSEXP);
-    Rcpp::traits::input_parameter< int >::type V(VSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type K(KSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type std_data(std_dataSEXP);
-    Rcpp::traits::input_parameter< List >::type pVK(pVKSEXP);
-    Rcpp::traits::input_parameter< List >::type mu_GK_V(mu_GK_VSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type sigma_GV(sigma_GVSEXP);
-    rcpp_result_gen = Rcpp::wrap(ConditionalLL_ls_func(N, NG, V, K, std_data, pVK, mu_GK_V, sigma_GV));
-    return rcpp_result_gen;
-END_RCPP
-}
 // mat_to_list
 List mat_to_list(NumericMatrix m, int V, NumericVector K);
 RcppExport SEXP _MFClust_mat_to_list(SEXP mSEXP, SEXP VSEXP, SEXP KSEXP) {
@@ -89,8 +54,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_MFClust_rowSumsC", (DL_FUNC) &_MFClust_rowSumsC, 1},
-    {"_MFClust_MarginalLL_v_func", (DL_FUNC) &_MFClust_MarginalLL_v_func, 7},
-    {"_MFClust_ConditionalLL_ls_func", (DL_FUNC) &_MFClust_ConditionalLL_ls_func, 8},
     {"_MFClust_mat_to_list", (DL_FUNC) &_MFClust_mat_to_list, 3},
     {"_MFClust_sigma_GKV_func", (DL_FUNC) &_MFClust_sigma_GKV_func, 6},
     {NULL, NULL, 0}

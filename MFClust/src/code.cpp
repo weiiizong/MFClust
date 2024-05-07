@@ -16,51 +16,6 @@ NumericVector rowSumsC(NumericMatrix x) {
   return out;
 }
 
-// [[Rcpp::export]]
-NumericMatrix MarginalLL_v_func(int N, int NG, int K_v, NumericMatrix std_data, //f_gv
-                                NumericMatrix mu_GK, NumericVector sigma_Gv, NumericVector pK) {
-
-  NumericMatrix Likl(NG,N);
-  for(int g = 0; g < NG; ++g){
-    NumericMatrix Likl_K(N,K_v);
-    NumericVector y = std_data(g,_);
-    for(int k=0; k < K_v; ++k){
-      Likl_K(_,k) = Rcpp::dnorm(y, mu_GK(g,k), sigma_Gv[g], false)*pK[k];
-    }
-    Likl(g,_) = log(rowSumsC(Likl_K));
-  }
-  return Likl;
-}
-
-// [[Rcpp::export]]
-List ConditionalLL_ls_func(int N, int NG, int V, NumericVector K, NumericMatrix std_data,
-                           List pVK, List mu_GK_V, NumericMatrix sigma_GV) {
-  List ConditionalLL(V);
-  for(int v = 0; v < V; ++v){
-    int K_v = K[v];
-    NumericMatrix mu_GK =  as<NumericMatrix>(mu_GK_V[v]);
-    NumericVector pK = as<NumericVector>(pVK[v]);
-
-    List ConditionalLikl_v(K_v);
-    for(int k = 0; k < K_v; ++k){
-      NumericMatrix Likl_k(NG,N);
-      for(int g = 0; g < NG; ++g){
-        NumericVector y = std_data(g,_);
-        // Rcout << "y = "<<y<<"\n";
-
-        Likl_k(g,_) = Rcpp::dnorm(y, mu_GK(g,k), sigma_GV(g,v), true);
-        // Rcout << "mu_GK(g,k) = "<<mu_GK(g,k)<<"\n";
-        // Rcout << "sigma_GK(g,k) = "<<sigma_GK(g,k)<<"\n";
-        //
-        // Rcout << "Likl_k(g,_) = "<<NumericVector{Likl_k(g,_)}<<"\n";
-
-      }
-      ConditionalLikl_v[k] = Likl_k;
-    }
-    ConditionalLL[v] = ConditionalLikl_v;
-  }
-  return ConditionalLL;
-}
 
 // [[Rcpp::export]]
 List mat_to_list(NumericMatrix m, int V, NumericVector K) {

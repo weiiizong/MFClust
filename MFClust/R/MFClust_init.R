@@ -16,7 +16,7 @@
 #' \dontrun{
 #' data(BA11_BA47_NG2000)
 #' init.ls = MFClust_init(std.data=BA11_BA47_NG2000, V=5, G.K=20, initial.kmin=100,
-#' R2_cutoff = 0.22, seed = 9)
+#' R2_cutoff = 0.26, seed = 9)
 #' }
 MFClust_init = function(std.data, V, G.K=20, initial.kmin=100, R2_cutoff, seed = NA){
   if(!is.na(seed)){
@@ -27,7 +27,7 @@ MFClust_init = function(std.data, V, G.K=20, initial.kmin=100, R2_cutoff, seed =
   if(length(G.K0) == 0){
     init.ls = list()
     aout = list(res = NA,res.tb = NA,metric.tb = NA)
-  }else if(length(G.K0) < 4){ #not enough for module clustering
+  }else if(length(G.K0) < V){ #not enough for module clustering
     init.ls = lapply(G.K0, function(v){
       sub.data = std.data[which(tClust$cluster == v),]
 
