@@ -1,6 +1,6 @@
 Package: MFClust
 Type: Package
-Title: A package for model-based multi-facet clustering in high-dimensional omics applications
+Title: Model-based multi-facet clustering in high-dimensional omics applications
 Version: 0.1.0
 Author: Wei Zong
 Maintainer: Wei Zong <wez97@pitt.edu>
