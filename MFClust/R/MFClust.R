@@ -42,7 +42,7 @@
 #' \dontrun{
 #' data(BA11_BA47_NG2000)
 #' init.ls = MFClust_init(std.data=BA11_BA47_NG2000, V=5, G.K=20, initial.kmin=100,
-#' R2_cutoff = 0.22, seed = 9)
+#' R2_cutoff = 0.26, seed = 9)
 #' V = length(init.ls)
 #' pV=rep(1/V,V)
 #' K=sapply(init.ls[1:V], function(xx) ncol(xx$mean.mat))
@@ -389,43 +389,6 @@ MFClust = function(V, K, pV, pVK, mu_GK_V, sigma_GV, std.data,
                                          mu_GK, sigma_Gv, pK)
     return(MarginalLikl_mat)
   })
-  LL_GVmat = as.matrix(sapply(logScaleMarginalLikl_mat_ls, rowSums))
-
-
-  if(V == 1){
-    LL_GVmat2 = LL_GVmat #adjust for prior
-    postGV = matrix(1,nrow = NG, ncol = V)
-    row.names(postGV) = row.names(std.data)
-  }else{
-    LL_GVmat2 = t(apply(LL_GVmat,1,function(x) log(pV)+x)) #adjust for prior
-    baseLL = sapply(1:V, function(v) {
-      K_v = K[v]
-      pvK = pVK[[v]]
-      mu_GK_v = mu_GK_V[[v]]
-      sigma_Gv = sigma_GV[,v]
-
-      if(K_v>1){
-        idx_pair = combn(K_v,2)
-        diffmu2G = apply(idx_pair,2,function(xx) {
-          a = xx[1]
-          b = xx[2]
-          (pvK[a] * pvK[b])*(mu_GK_v[,a]-mu_GK_v[,b])^2
-        })
-        scale_p = sum(apply(idx_pair,2,function(xx) {
-          a = xx[1]
-          b = xx[2]
-          (pvK[a] * pvK[b])
-        }))
-        rowSums(diffmu2G)/(scale_p*2*sigma_Gv^2) + log(sigma_Gv*sqrt(2*pi))
-      }else{
-        rep(0,length(sigma_Gv))
-      }
-    })
-    LL_GVmat3 = LL_GVmat2 + N*baseLL #adjust for relative likelihood
-    postGV = t(apply(LL_GVmat3,1, function(x) {
-      exp(x-max(x))/sum(exp(x-max(x)))
-    }))
-  }
   logLik_VG = sapply(1:V, function(v){
     K_v = K[v]
     mu_GK = mu_GK_V[[v]]
@@ -502,8 +465,8 @@ MFClust = function(V, K, pV, pVK, mu_GK_V, sigma_GV, std.data,
     predGV_clust = rep(1,length(clust_idx))
   }
 
-  tb = table(predGV_clust)
-  null.v = union(as.numeric(names(tb)[tb<4]),which(apply(postGV,2,function(x) sum(x > 1e-10) == 0)))
+  null.v = union(as.numeric(names(tb)[tb<=5]),which(apply(w_GV,2,function(x) sum(x > 1e-10) == 0)))
+  null.v = union(null.v,setdiff(1:V,names(tb)))
   if(length(null.v) != 0){
     V = V-length(null.v)
     if(V == 0){
