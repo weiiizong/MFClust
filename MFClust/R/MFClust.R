@@ -192,7 +192,7 @@ MFClust = function(V, K, pV, pVK, mu_GK_V, sigma_GV, std.data,
     }
     predGV_clust = apply(w_GV[clust_idx,,drop=F], 1, which.max)
     tb = table(predGV_clust)
-    null.v = union(as.numeric(names(tb)[tb<=3]),which(apply(w_GV,2,function(x) sum(x > 1e-10) == 0)))
+    null.v = union(as.numeric(names(tb)[tb<=5]),which(apply(w_GV,2,function(x) sum(x > 1e-10) == 0)))
     null.v = union(null.v,setdiff(1:V,names(tb)))
     if(length(null.v) != 0){
       V = V-length(null.v)
