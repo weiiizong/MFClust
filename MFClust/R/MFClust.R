@@ -489,11 +489,11 @@ MFClust = function(V, K, pV, pVK, mu_GK_V, sigma_GV, std.data,
   }
 
   avgR2_selected_soft_sepV = mean(sapply(1:V, function(v){
-    xx = which(apply(postGV, 1, which.max) == v)
-    mean(rowSums(postGV * R2_V)[intersect(xx,clust_idx)])
+    xx = which(apply(w_GV, 1, which.max) == v)
+    mean(rowSums(w_GV * R2_V)[intersect(xx,clust_idx)])
   }))
   return(list(V=V, K=K, pV=pV, pVK=pVK, mu_GK_V=mu_GK_V,sigma_GV =sigma_GV,
-              Kpath=Kpath,postGV = postGV, postNK_V = w_NK_V,
+              Kpath=Kpath,postGV = w_GV, postNK_V = w_NK_V,
               R2_cutoff = R2_cutoff,
               avgR2_selected_soft_sepV = avgR2_selected_soft_sepV,
               criterion = criterion))
