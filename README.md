@@ -10,9 +10,9 @@ Alternatively, download the tar.gz zipped file, unzip it and install using devto
 
 ## Initialization
 ```
-data(BA11_BA47_NG2000)
-init.ls = MFClust_init(std.data=BA11_BA47_NG2000, V=5, G.K=20, initial.kmin=100,
-R2_cutoff = 0.22, seed = 9)
+data(BA11_BA47_NG2000_dat)
+init.ls = MFClust_init(std.data=BA11_BA47_NG2000_dat, V=5, G.K=20, initial.kmin=100,
+R2_cutoff = 0.26, seed = 9)
 ```
 
 ## Application of algorithm
@@ -23,14 +23,14 @@ pV=rep(1/V,V)
 K=sapply(init.ls[1:V], function(xx) ncol(xx$mean.mat))
 pVK=lapply(1:V, function(v) rep(1/K[v],K[v]))
 mu_GK_V=lapply(init.ls[1:V], function(xx) {
-  mat = xx$mean.mat
-  row.names(mat) = row.names(std.data)
-  return(mat)
+mat = xx$mean.mat
+row.names(mat) = row.names(BA11_BA47_NG2000_dat)
+return(mat)
 })
 sigma_GV=sapply(init.ls[1:V], function(xx) {
   mat = apply(xx$sigma.mat,1,function(x){sqrt(mean(x^2))})
   return(mat)
 })
-row.names(sigma_GV) = row.names(std.data)
-res = MFClust(V, K, pV, pVK, mu_GK_V, sigma_GV, std.data, R2_cutoff = 0.22)
+row.names(sigma_GV) = row.names(BA11_BA47_NG2000_dat)
+res = MFClust(V, K, pV, pVK, mu_GK_V, sigma_GV, BA11_BA47_NG2000_dat, R2_cutoff = 0.26)
 ```
