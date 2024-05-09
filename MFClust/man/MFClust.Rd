@@ -74,7 +74,7 @@ Provide multiple clustering solutions to the data provided
 \dontrun{
 data(BA11_BA47_NG2000)
 init.ls = MFClust_init(std.data=BA11_BA47_NG2000, V=5, G.K=20, initial.kmin=100,
-R2_cutoff = 0.22, seed = 9)
+R2_cutoff = 0.26, seed = 9)
 V = length(init.ls)
 pV=rep(1/V,V)
 K=sapply(init.ls[1:V], function(xx) ncol(xx$mean.mat))
