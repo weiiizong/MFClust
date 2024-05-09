@@ -380,15 +380,6 @@ MFClust = function(V, K, pV, pVK, mu_GK_V, sigma_GV, std.data,
     w_GV_old = w_GV
     r = r+1
   }
-  logScaleMarginalLikl_mat_ls = lapply(1:V, function(v){
-    K_v = K[v]
-    mu_GK = mu_GK_V[[v]]
-    sigma_Gv = sigma_GV[,v]
-    pK = pVK[[v]]
-    MarginalLikl_mat = MarginalLL_v_func(N, NG, K_v, std.data,
-                                         mu_GK, sigma_Gv, pK)
-    return(MarginalLikl_mat)
-  })
   logLik_VG = sapply(1:V, function(v){
     K_v = K[v]
     mu_GK = mu_GK_V[[v]]
