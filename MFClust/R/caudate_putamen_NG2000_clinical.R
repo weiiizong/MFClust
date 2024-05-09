@@ -1,7 +1,7 @@
 #' Clinical data for the dorsal striatum data
 #'
 #'
-#' @format a matrix with 226 samples (row) and 8 variables (columns), some interesting clinical variables include
+#' @format a matrix with 226 samples (row) and 7 variables (columns), some interesting clinical variables include
 #' \describe{
 #'   \item{pair}{subject ID}
 #'   \item{Age}{subject age}
