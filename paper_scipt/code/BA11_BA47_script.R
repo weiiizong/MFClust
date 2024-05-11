@@ -1,20 +1,19 @@
-## BA11_BA47 real data application ### 
-
-#1. V = 2:6, R2cut = 0 =================================================================================================
+#1. V = 1:7, eta(R2cut) = 0 =================================================================================================
 rm(list=ls())
 library(Rcpp)
 library(S4)
 library(tightClust)
 library(cluster)
 library(MASS)
-load("/home/wez97/MultiViewClust/data/BA11_BA47_PreprocessedData.RData")
-sourceCpp("/home/wez97/MultiViewClust/code/EM_MFClust_func_C.cpp")
-source('/home/wez97/MultiViewClust/code/EM_MFClust_func.R')
-source('/home/wez97/MultiViewClust/code/S4_Kmedoids.R')
-source('/home/wez97/MultiViewClust/code/run_func_BA11_BA47_r0.R')
+
+load("~/data/BA11_BA47_PreprocessedData.RData")
+sourceCpp("~/code/EM_MFClust_func_C.cpp")
+source('~/code/EM_MFClust_func.R')
+source('~/code/S4_Kmedoids.R')
+source('~/code/run_func_BA11_BA47_r0.R')
 
 std.data = std.data2000
-V.list = 2:6
+V.list = 1:7
 R2.list = c(0)
 G.K.list = c(20)
 initial.list = expand.grid(c(50,100,500),1:10)
@@ -23,14 +22,20 @@ scenario.idx = expand.grid(1:nrow(initial.list), 1:length(R2.list),
                            1:length(G.K.list),1:length(V.list))
 library(parallel)
 full.res = mclapply(1:nrow(scenario.idx),run.func_V,mc.cores = 50)
-save(full.res,file = "/home/wez97/MultiViewClust/output/RealData/BA11_BA47_03022023_full.res_V23456_r20.RData")
+save(full.res,file = "~/output/BA11_BA47_full.res_V234567_r20.RData")
 
+
+rm(list = ls())
+load("~/data/BA11_BA47_PreprocessedData.RData")
+std.data = std.data2000
+load("~/output/BA11_BA47_full.res_V234567_r20.RData")
 res.tb.ls = lapply(full.res, "[[","res.tb")
 res.tb = data.frame(do.call(rbind,res.tb.ls))
 library(dplyr)
 df01 = res.tb %>% filter(max_pairARI<0.2) %>%
   group_by(orig_V) %>%
-  slice(which.max(avgR2_selected_soft_sepV))
+  slice(which.max(V)) %>%
+  slice(which.max(avgR2_selected_soft_sepV)) 
 
 #Select r_2 cutoff for each mu0
 r2_cut = seq(0.01,0.5,0.01)
@@ -78,9 +83,9 @@ avg.tab_r2cut = left_join(xx,r2_cut_thrshld)
 avg_r2_cut = round(unlist(avg.tab_r2cut[,"r"]),2)
 names(avg_r2_cut) = avg.tab_r2cut[,"orig_V"]
 save(avg_r2_cut,
-     file = "/home/wez97/MultiViewClust/output/RealData/BA11_BA47_03022023_full.res_V23456_avg_r2_cut_r20_2folds.RData") 
+     file = "~/output/BA11_BA47_full.res_V234567_avg_r2_cut_r20_2folds.RData") 
 
-#2. V = 2:5, selected R2cut =================================================================================================
+#2. V = 1:6, selected R2cut =================================================================================================
 rm(list=ls())
 library(Rcpp)
 library(S4)
@@ -88,265 +93,40 @@ library(tightClust)
 library(cluster)
 library(MASS)
 
-load("/home/wez97/MultiViewClust/data/BA11_BA47_PreprocessedData.RData")
-sourceCpp("/home/wez97/MultiViewClust/code/EM_MFClust_func_C.cpp")
-source('/home/wez97/MultiViewClust/code/EM_MFClust_func.R')
-source('/home/wez97/MultiViewClust/code/S4_Kmedoids.R')
-source('/home/wez97/MultiViewClust/code/run_func_BA11_BA47_selectedR2cutoff.R')
+load("~/data/BA11_BA47_PreprocessedData.RData")
+sourceCpp("~/code/EM_MFClust_func_C.cpp")
+source('~/code/EM_MFClust_func.R')
+source('~/code/S4_Kmedoids.R')
+source('~/code/run_func_BA11_BA47_selectedR2cutoff.R')
 
-load("/home/wez97/MultiViewClust/output/RealData/BA11_BA47_03022023_full.res_V23456_avg_r2_cut_r20_2folds.RData")
+load("~/output/BA11_BA47_02222024_full.res_V234567_avg_r2_cut_r20_2folds.RData")
+
 R2.list = avg_r2_cut
 std.data = std.data2000
-V.list = 2:5
+V.list = 1:6
 G.K.list = c(20)
 initial.list = expand.grid(c(50,100,500),1:10)
 colnames(initial.list) = c("kmin","seednum")
 scenario.idx = expand.grid(1:nrow(initial.list), 1:length(G.K.list),1:length(V.list))
 library(parallel)
 full.res = mclapply(1:nrow(scenario.idx),run.func_V,mc.cores = 50)
-save(full.res,file = "/home/wez97/MultiViewClust/output/RealData/BA11_BA47_03022023_full.res_V2345_selectR2_cutoff_2folds.RData")
+save(full.res,file = "~/output/BA11_BA47_full.res_V23456_selectR2_cutoff_2folds.RData")
 
-
-###plots=============================================================================
-rm(list = ls())
+#3. Plot ========================================================================================================================
 load("~/data/BA11_BA47_PreprocessedData.RData")
+load("~/output/BA11_BA47_full.res_V23456_selectR2_cutoff_2folds.RData")
 std.data = std.data2000
-load("~/output/BA11_BA47_03022023_full.res_V2345_selectR2_cutoff_2folds.RData")
 res.tb.ls = lapply(full.res, "[[","res.tb")
 res.tb = data.frame(do.call(rbind,res.tb.ls))
 library(dplyr)
 df01 = res.tb %>% filter(max_pairARI<0.2) %>%
   group_by(orig_V) %>%
-  slice(which.max(avgR2_selected_soft_sepV))
+  slice_max(V) %>%
+  slice_max(avgR2_selected_soft_sepV)
+df01 %>% dplyr::select(c("orig_V","V","initial.kmin","max_pairARI","avg_pairARI","avgR2_selected_soft_sepV"))
+res = full.res[[df01$l[4]]][["res"]]
 
-
-p.ls = list()
-for (i in 1:nrow(df01)) {
-  V = df01[i,"orig_V"]
-  res = full.res[[df01$l[i]]][["res"]]
-  pred_Glb = apply(res$postGV,1,function(x) {
-    if(all(x == 0)){
-      0
-    }else{
-      which.max(x)
-    }
-  })
-  gene.lb.ls = lapply(1:res$V, function(v){which(pred_Glb == v)})
-  
-  R2_V_ls = lapply(1:res$V, function(v) {
-    r2 = res$R2_V[pred_Glb == v,v]
-    df = data.frame(sort_r2 = sort(r2), genes = names(sort(r2)), v = v) 
-  })
-  avg_median_R2 = sapply(R2_V_ls, function(xx) median(xx$sort_r2))
-  R2_V_df = do.call(rbind,R2_V_ls)
-  R2_V_df$v = factor(R2_V_df$v)
-  R2_V_df$genes = factor(R2_V_df$genes,levels = R2_V_df$genes)
-  p.ls[[i]] = ggplot(R2_V_df,aes(x = genes, y = sort_r2, color = v))+
-    geom_col()+coord_flip()+theme(axis.text.y = element_blank())+
-    labs(title = paste0("V=",V))+
-    scale_color_manual(values = hcl.colors(V$orig_V,"Zissou1"),
-                       labels = paste0(1:V$orig_V,";median_r2=",format(avg_median_R2,digits = 2)))
-  
-}
-library(gridExtra)
-grid.arrange(arrangeGrob(grobs= p.ls,ncol=2))
-
-idx = df01$l
-library("RColorBrewer")
-library(pheatmap)
-p.ls = res.tab.ls = list()
-for (l in 1:length(idx)) {
-  s.idx = idx[l]
-  res = full.res[[s.idx]][["res"]]
-  pred_GV = res$postGV  
-  variableP = full.res[[s.idx]][["metric.tb"]]
-  
-  
-  G.K = full.res[[s.idx]][["res.tb"]]["G.K"]
-  V = full.res[[s.idx]][["res.tb"]]["orig_V"]
-  pred_GV = res$postGV  
-  pred_Glb = apply(pred_GV,1,function(x) {
-    if(all(x == 0)){
-      0
-    }else{
-      which.max(x)
-    }
-  })
-  gene.ls = lapply(1:res$V, function(v){
-    row.names(std.data)[which(pred_Glb == v)]
-  })
-  
-  variables = union(row.names(variableP)[apply(variableP, 1, function(x) !all(x>0.05))],c("Age","Brain","Sex"))
-  TOD = clinical$TOD
-  sinT = sin(TOD)
-  cosT = cos(TOD)
-  
-  logp.ls = lapply(1:res$V, function(v){
-    sub.std.data = std.data[gene.ls[[v]],,drop=F]
-    log.df = data.frame(t(apply(sub.std.data, 1, function(y){
-      sapply(variables, function(var){
-        -log10(summary(lm(y ~ clinical[,var,drop = T]))$coefficients[2,4])
-      })
-    })))
-    log.df.T = data.frame(t(apply(sub.std.data, 1, function(y){
-      sinT.p = -log10(summary(lm(y ~ sinT))$coefficients[2,4])
-      cosT.p = -log10(summary(lm(y ~ cosT))$coefficients[2,4])
-      return(c(sinT = sinT.p, cosT = cosT.p))
-    })))
-    log.df = cbind(log.df,log.df.T)
-    log.df$v = v
-    return(log.df)
-  })
-  logp.df = do.call(rbind,logp.ls)
-  library(tidyr)
-  library(ggplot2)
-  df = gather(logp.df,variable,log10P,-v)
-  p = ggplot(df,aes(x = variable, y = log10P))+
-    geom_boxplot()+
-    facet_grid(rows = "v",scales = "free_y")+
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-    labs(title = paste0("V=",V))
-  p.ls[[l]] = p
-  
-  variableP = rbind(V,seq(1:res$V),variableP)
-  row.names(variableP)[c(1,2)] = c("V","v")
-  res.tab.ls[[l]] = variableP
-}
-library(gridExtra)
-grid.arrange(arrangeGrob(grobs= p.ls,ncol=4))
-xx = data.frame(t(do.call(cbind,res.tab.ls)))
-format(xx,digits = 2)
-
-pairV.ls = list()
-for(amu in 1:(length(idx)-1)){
-  res1 = full.res[[idx[amu]]][["res"]]
-  pred_Glb = apply(res1$postGV,1,function(x) {
-    if(all(x == 0)){
-      0
-    }else{
-      which.max(x)
-    }
-  })
-  gene.lb.ls1 = lapply(1:res1$V, function(v){which(pred_Glb == v)})
-  
-  res2 = full.res[[idx[amu+1]]][["res"]]
-  pred_Glb = apply(res2$postGV,1,function(x) {
-    if(all(x == 0)){
-      0
-    }else{
-      which.max(x)
-    }
-  })
-  gene.lb.ls2 = lapply(1:res2$V, function(v){which(pred_Glb == v)})
-  
-  pairV = data.frame(expand.grid(1:length(gene.lb.ls1),1:length(gene.lb.ls2)))
-  pairV$weight = sapply(1:nrow(pairV),function(i){
-    ridx = pairV[i,1]
-    cidx = pairV[i,2]
-    
-    xx = length(intersect(gene.lb.ls1[[ridx]],gene.lb.ls2[[cidx]]))/min(length(gene.lb.ls1[[ridx]]),length(gene.lb.ls2[[cidx]]))
-  })
-  pairV$pair = paste0(amu,amu+1)
-  pairV.ls[[amu]] = pairV
-}
-pairV = do.call(rbind,pairV.ls)
-pairV.pdf = pairV[pairV$weight != 0,]
-V = df01$V
-loc = seq(2,12,length.out = length(idx))
-nam1 = df01$R2_cutoff.2
-vlist = unlist(sapply(V, function(x){
-  seq(1:x)
-}))
-NG = sapply(idx, function(i){
-  res = full.res[[i]][["res"]]
-  pred_Glb = apply(res$postGV,1,function(x) {
-    if(all(x == 0)){
-      0
-    }else{
-      which.max(x)
-    }
-  })
-  gene.lb.ls = sapply(1:res$V, function(v){sum(pred_Glb == v)})
-})
-pairV.lb = data.frame(x = unlist(sapply(1:length(loc), function(x) rep(loc[x],V[x]))), y = as.numeric(vlist),
-                      name = paste0("R2cut=",unlist(sapply(1:length(nam1), function(x) rep(nam1[x],V[x]))),";v",vlist,"\nNG=",unlist(NG)))
-library(ggnewscale)
-p=ggplot(data = pairV.pdf)
-for (i in 1:length(unique(pairV.pdf$pair))) {
-  sub.dat = pairV.pdf[pairV.pdf$pair == unique(pairV.pdf$pair)[i],]
-  sub.dat$x1 = loc[i]
-  sub.dat$x2 = loc[i+1]
-  p = p+geom_segment(data = sub.dat,aes(x=x1, y=Var1, xend=x2, yend=Var2,color=weight),size = 2)
-}
-p = p+scale_color_gradient(low = "white",high = "#0077b6")
-p + geom_label(
-  data= pairV.lb,
-  aes(x = x, y=y),
-  label=pairV.lb$name, 
-  #nudge_x = 0.25, nudge_y = 0.25, 
-  label.size = 1,
-  size = 4,
-  fill = "#f6bd60")+
-  scale_x_continuous(limits = c(0,14))+
-  theme_minimal()+
-  theme(axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank())+
-  labs(title = paste0("V=",V))
-
-library(mclust)
-cl.ls = lapply(1:res$V, function(v){
-  apply(res$w_NK_V[[v]],1,which.max)
-})
-
-metric.tb = sapply(cl.ls, function(cl){
-  Sex = fisher.test(clinical$Sex,cl)$p.value
-  Race = fisher.test(clinical$Race,cl)$p.value
-  #Cause = fisher.test(clinical$CAUSE,cl)$p.value
-  #MANNER = fisher.test(clinical$MANNER,cl)$p.value
-  COLSITE = fisher.test(clinical$COLSITE,cl)$p.value
-  RAPIDDEATH = fisher.test(clinical$RAPIDDEATH,cl)$p.value
-  
-  Brain = fisher.test(clinical$Brain,cl)$p.value
-  Age = summary(lm(clinical$Age ~ cl))$coefficients[2,4]
-  PMI = summary(lm(clinical$PMI ~ cl))$coefficients[2,4]
-  pH = summary(lm(clinical$pH ~ cl))$coefficients[2,4]
-  RIN = summary(lm(clinical$RIN ~ cl))$coefficients[2,4]
-  TOD = summary(lm(clinical$TOD ~ cl))$coefficients[2,4]
-  TOD.sin = summary(lm(sin(clinical$TOD) ~ cl))$coefficients[2,4]
-  TOD.cos = summary(lm(cos(clinical$TOD) ~ cl))$coefficients[2,4]
-  
-  return(c(TOD.sin = TOD.sin, TOD.cos = TOD.cos, Sex = Sex, Race = Race,
-           COLSITE = COLSITE, RAPIDDEATH = RAPIDDEATH,
-           TOD = TOD, Brain = Brain, Age = Age, PMI = PMI, pH = pH, RIN = RIN))
-})
-colnames(metric.tb) = paste0("view_",1:length(cl.ls))
-
-
-## V = 5 plot ===========================================================
-rm(list = ls())
-load("~/data/BA11_BA47_pool_data_03022023.RData")
-std.data = std.data2000
-load("~/output/BA11_BA47_03022023_full.res_V2345_selectR2_cutoff_2folds.RData")
-res.tb.ls = lapply(full.res, "[[","res.tb")
-res.tb = data.frame(do.call(rbind,res.tb.ls))
-library(dplyr)
-df01 = res.tb %>% filter(max_pairARI<0.2) %>%
-  group_by(orig_V) %>%
-  slice(which.max(avgR2_selected_soft_sepV))
-l = df01$l[4]
-res = full.res[[l]][["res"]]
-pred_GV = res$postGV  
-variableP = full.res[[l]][["metric.tb"]]
-
-G.K = full.res[[l]][["res.tb"]]["G.K"]
-V = full.res[[l]][["res.tb"]]["orig_V"]
-pred_GV = res$postGV  
+pred_GV = res$postGV
 pred_Glb = apply(pred_GV,1,function(x) {
   if(all(x == 0)){
     0
@@ -357,23 +137,13 @@ pred_Glb = apply(pred_GV,1,function(x) {
 gene.ls = lapply(1:res$V, function(v){
   row.names(std.data)[which(pred_Glb == v)]
 })
-
-for (i in 1:length(gene.ls)) {
-  write.csv(gene.ls[[i]],paste0("~/data/BA11_BA47_V5_v",i,".csv"))
-}
-
-
-variables = c("Age","Brain","pH","PMI","RIN","Sex")
-TOD = clinical$TOD
-sinT = sin(TOD)
-cosT = cos(TOD)
-
-
-library(mclust)
+gene.ls.final = gene.ls
 cl.ls = lapply(1:res$V, function(v){
   apply(res$w_NK_V[[v]],1,which.max)
 })
+cl.ls.final = cl.ls
 
+## Heatmap
 library(pheatmap)
 library(gplots)
 standardize = function(gene.i){
@@ -388,280 +158,199 @@ standardize = function(gene.i){
   s.x[which(s.x<(-2))] = -2
   return(s.x)
 }
+light_green <- rgb(144, 238, 144, maxColorValue=255)  # Light Green
+dark_green <- rgb(0, 100, 0, maxColorValue=255)
+order_varls <- list(f1 = c("pH","RIN"), f2 = c("Age","pH"),
+                    f3 = c("pH","PMI","RIN"), f4 = c("Sex"), f5=c("Brain.Region","pH"))
 p.ls = list()
-for(v in 1:res$V){
-  dat = std.data[gene.ls[[v]],]
-  col_pheno = data.frame("cluster_v1" = factor(cl.ls[[1]]),
-                         "cluster_v2" = factor(cl.ls[[2]]),
-                         "cluster_v3" = factor(cl.ls[[3]]),
-                         "cluster_v4" = factor(cl.ls[[4]]),
-                         "cluster_v5" = factor(cl.ls[[5]]))
-  row.names(col_pheno) = colnames(dat)
-  annoCol = list("cluster_v1"=c("1"="#D82390", "2"="#E9D2E0"),
-                 "cluster_v2"=c("1"="#5E22DF", "2"="#CEC6E1"),
-                 "cluster_v3"=c("1"="#1A6DF3", "2"="#C5D8F7"),
-                 "cluster_v4"=c("1"="#20D176", "2"="#CCECDC"),
-                 "cluster_v5"=c("1"="#F7E526", "2"="#EBE9D6"))
-  
-  #HC within each cluster to determine order
-  cl.ordered = list()
-  for(i in 1:length(unique(cl.ls[[v]]))){
-    dati = dat[,cl.ls[[v]] == i]
-    xx = hclust(dist(t(dati)))
-    cl.ordered[[i]] =  colnames(dati)[xx$order]
-  }
-
-  dat = apply(dat, 1, standardize)
-  
-  png(paste0("~/manuscript/figures/BA11_BA47_heatmap_v",v,".png"),width = 800,height = 800,
-      res=200)
-  pheatmap(t(dat)[,unlist(cl.ordered)], cluster_rows = T,cluster_cols = F, show_rownames = F, show_colnames = F,border_color = NA, 
-               color=greenred(75),treeheight_row = 0, treeheight_col = 0, labels_col="Samples",
-               annotation_col = col_pheno,annotation_colors = annoCol,main = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"),annotation_legend = F, annotation_names_col = F,legend = F)
-  dev.off()
-}
-png(paste0("~/manuscript/figures/BA11_BA47_heatmap_legend.png"),width = 1000,height = 1200,
-    res=200)
-pheatmap(t(dat)[,unlist(cl.ordered)], cluster_rows = T,cluster_cols = F, show_rownames = F, show_colnames = F,border_color = NA, 
-         color=greenred(75),treeheight_row = 0, treeheight_col = 0, labels_col="Samples",
-         annotation_col = col_pheno,annotation_colors = annoCol,main = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"))
-dev.off()
-
-#clinical variable bars
-p.ls = list()
-for(v in 1:res$V){
-  dat = std.data[gene.ls[[v]],]
-  col_pheno = data.frame("Cluster" = factor(cl.ls[[v]]),
-                         "Age" = clinical$Age,
-                         "Brain" = factor(clinical$Brain),
-                         "pH" = clinical$pH,
-                         "PMI" = clinical$PMI,
-                         "RIN" = clinical$RIN,
-                         "Sex" = factor(clinical$Sex))
-  row.names(col_pheno) = colnames(dat)
-  annoCol = list("Cluster"=c("1"="#D82390", "2"="#E9D2E0"),
-                 "Brain"=c("B11"="#5E22DF", "B47"="#CEC6E1"),
-                 "Sex"=c("F"="#1A6DF3", "M"="#C5D8F7"))
-  
-  #HC within each cluster to determine order
-  cl.ordered = list()
-  for(i in 1:length(unique(cl.ls[[v]]))){
-    dati = dat[,cl.ls[[v]] == i]
-    xx = hclust(dist(t(dati)))
-    cl.ordered[[i]] =  colnames(dati)[xx$order]
-  }
-  
-  dat = apply(dat, 1, standardize)
-  
-  png(paste0("~/manuscript/figures/BA11_BA47_heatmap_v",v,"_topClinical.png"),width = 900,height = 850,
-      res=200)
-  pheatmap(t(dat)[,unlist(cl.ordered)], cluster_rows = T,cluster_cols = F, show_rownames = F, show_colnames = F,border_color = NA, 
-           color=greenred(75),treeheight_row = 0, treeheight_col = 0, labels_col="Samples",
-           annotation_col = col_pheno,annotation_colors = annoCol,main = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"),annotation_legend = T, annotation_names_col = T,legend = F)
-  dev.off()
-}
-png(paste0("~/manuscript/figures/BA11_BA47_heatmap_legend_topClinical.png"),width = 1000,height = 2000,
-    res=200)
-pheatmap(t(dat)[,unlist(cl.ordered)], cluster_rows = T,cluster_cols = F, show_rownames = F, show_colnames = F,border_color = NA, 
-         color=greenred(75),treeheight_row = 0, treeheight_col = 0, labels_col="Samples",
-         annotation_col = col_pheno,annotation_colors = annoCol,main = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"))
-dev.off()
-
-metric.tb = lapply(cl.ls, function(cl){
-  Age = summary(lm(clinical$Age ~ cl))$coefficients[2,4]
-  Brain = fisher.test(clinical$Brain,cl)$p.value
-  pH = summary(lm(clinical$pH ~ cl))$coefficients[2,4]
-  PMI = summary(lm(clinical$PMI ~ cl))$coefficients[2,4]
-  RIN = summary(lm(clinical$RIN ~ cl))$coefficients[2,4]
-  Sex = fisher.test(clinical$Sex,cl)$p.value
-  sinT = summary(lm(sin(clinical$TOD) ~ cl))$coefficients[2,4]
-  cosT = summary(lm(cos(clinical$TOD) ~ cl))$coefficients[2,4]
-  
-  return(c(Age = Age, Brain = Brain, pH = pH, PMI = PMI, RIN = RIN, Sex = Sex, 
-           sinT = sinT, cosT = cosT))
-})
-
-
-logp.ls = lapply(1:res$V, function(v){
-  sub.std.data = std.data[gene.ls[[v]],,drop=F]
-  log.df = data.frame(t(apply(sub.std.data, 1, function(y){
-    sapply(variables, function(var){
-      -log10(summary(lm(y ~ clinical[,var,drop = T]))$coefficients[2,4])
-    })
-  })))
-  log.df.T = data.frame(t(apply(sub.std.data, 1, function(y){
-    sinT.p = -log10(summary(lm(y ~ sinT))$coefficients[2,4])
-    cosT.p = -log10(summary(lm(y ~ cosT))$coefficients[2,4])
-    return(c(sinT = sinT.p, cosT = cosT.p))
-  })))
-  log.df = cbind(log.df,log.df.T)
-  log.df$v = v
-  return(log.df)
-})
-logp.df = do.call(rbind,logp.ls)
-p.ls = list()
-library(ggpubr)
-
 for(v in 1:5){
-  metric.tb.v = metric.tb[[v]]
-  p.df = logp.df[logp.df$v == v,]
-  df = gather(p.df,variable,log10P,-v)
-  #df$sigVar_cat = sapply(1:nrow(df), function(xx) metric.tb.v[df$variable[xx]]<0.05)
-  df$sigVar = sapply(1:nrow(df), function(xx) -log10(metric.tb.v[df$variable[xx]]))
-  df$sigVar[df$sigVar>6] = 6
-  ylim = ifelse(v == 4, 190,30)
-  p.ls[[v]] = ggplot(df,aes(x = variable, y = log10P,fill = sigVar))+
-    geom_boxplot()+
-    theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))+
-    labs(title = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"))+
-    #scale_fill_continuous(name = bquote(Cluster~-log[10]~P))+
-    scale_fill_gradient(
-      limits = c(0,6),
-      low = "#C7D1D3",
-      high = "#18C3E6",
-      space = "Lab",
-      na.value = "#C7D1D3",
-      guide = "colourbar",
-      aesthetics = "fill"
-    )+
-    #scale_colour_manual(values = c("#a3b18a","#e76f51"))+
-    #scale_fill_continuous(limits = c(1.3,6),name = paste0("Cluster -log10P"))+
-    scale_y_continuous(limits = c(0,ylim),name = "")+
-    scale_x_discrete(name = "")+
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(legend.position = "none",axis.text=element_text(size=11),axis.title=element_text(size=13))
+  dat = std.data[gene.ls[[v]],]
+  order_var <- order_varls[[v]]
+  col_pheno = cbind(cl.ls[[v]], clinical[,order_var])
+  colnames(col_pheno) <- c("Cluster", order_var)
+  row.names(col_pheno) = colnames(dat)
+  col_pheno <- as.data.frame(col_pheno)
+  col_pheno$Cluster <- factor(cl.ls[[v]], levels = c(1,2), labels = c(1,2))
+  if("Brain.Region" %in% order_var){
+    col_pheno$Brain.Region = factor(col_pheno$Brain.Region)
+  }
+  if("Sex" %in% order_var){
+    col_pheno$Sex = factor(col_pheno$Sex)
+  }
+  annoCol = list("Cluster"=c("1"="#D82390", "2"="#E9D2E0"),
+                 "Brain.Region"=c("B11"="#5E22DF", "B47"="#CEC6E1"),
+                 "Sex"=c("F"="#1A6DF3", "M"="#C5D8F7"),
+                 "RIN" = colorRampPalette(c(dark_green, light_green))(100),
+                 "pH"= colorRampPalette(c("red", "orange", "yellow"))(100),
+                 "Age" = colorRampPalette(c("blue", "cyan"))(100),
+                 "PMI" = colorRampPalette(c("purple","white"))(100))
   
+  #HC within each cluster to determine order
+  cl.ordered = list()
+  for(i in 1:length(unique(cl.ls[[v]]))){
+    dati = dat[,cl.ls[[v]] == i]
+    xx = hclust(dist(t(dati)))
+    cl.ordered[[i]] =  colnames(dati)[xx$order]
+  }
+  
+  dat = apply(dat, 1, standardize)
+  
+  png(paste0("~/output/BA11_BA47_heatmap_v",v,".png"),width = 900,height = 850,
+      res=200)
+  pheatmap(t(dat)[,unlist(cl.ordered)], cluster_rows = T,cluster_cols = F, show_rownames = F, show_colnames = F,border_color = NA,
+           color=colorRampPalette(c("purple","blue","yellow","orange"))(n = 200),treeheight_row = 0, treeheight_col = 0, labels_col="Samples",
+           annotation_col = col_pheno,annotation_colors = annoCol,main = paste0("Facet ",v," (NG=",length(gene.ls[[v]]),")"),
+           annotation_legend = T, annotation_names_col = T,legend = F)
+  dev.off()
 }
-library(gridExtra)
-png("~/manuscript/figures/BA11_BA47_boxplot_V5.png",width = 1200,height = 900,
-    res=150)
-grid.arrange(arrangeGrob(grobs= p.ls,ncol=3))
-dev.off()
-library(ggpubr)
-p = ggplot(df,aes(x = variable, y = log10P,fill = sigVar))+
-  geom_boxplot()+
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))+
-  labs(title = paste0("View ",v))+
-  #scale_fill_continuous(name = bquote(Cluster~-log[10]~P))+
-  scale_fill_gradient(
-    limits = c(0,6),
-    low = "#C7D1D3",
-    high = "#18C3E6",
-    space = "Lab",
-    na.value = "#C7D1D3",
-    guide = "colourbar",
-    aesthetics = "fill",
-    name = ""
-  )+
-  scale_y_continuous(limits = c(0,ylim),name = "")+
-  scale_x_discrete(name = "")+
-  theme(plot.title = element_text(hjust = 0.5))
-mylegend = get_legend(p)
-png("~/manuscript/figures/BA11_BA47_boxplot_V5_legend.png",res=150)
-as_ggplot(mylegend)
 dev.off()
 
-library(tidyr)
-library(ggplot2)
-df = gather(logp.df,variable,log10P,-v)
-p = ggplot(df,aes(x = variable, y = log10P))+
-  geom_boxplot()+
-  facet_wrap(~v,scales = "free_y")+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  labs(title = paste0("V=",V))
-p
+## Transition plot
+df01_1 = res.tb1[which.max(res.tb1$avgR2_selected_soft_sepV),]
 
-
-# V=2-5====================================
-rm(list = ls())
-load("~/data/BA11_BA47_pool_data_03022023.RData")
-std.data = std.data2000
-load("~/output/BA11_BA47_03022023_full.res_V2345_selectR2_cutoff_2folds.RData")
-res.tb.ls = lapply(full.res, "[[","res.tb")
-res.tb = data.frame(do.call(rbind,res.tb.ls))
-library(dplyr)
-df01 = res.tb %>% filter(max_pairARI<0.2) %>%
+res.tb.ls2 = lapply(full.res, "[[","res.tb")
+res.tb2 = data.frame(do.call(rbind,res.tb.ls2))
+df01_2 = res.tb2 %>% filter(max_pairARI<0.2) %>%
   group_by(orig_V) %>%
-  slice(which.max(avgR2_selected_soft_sepV))
-grid.p = list()
-## v=2 plot
-l = df01$l[1]
-res = full.res[[l]][["res"]]
-pred_GV = res$postGV  
-variableP = full.res[[l]][["metric.tb"]]
+  slice_max(V) %>%
+  slice_max(avgR2_selected_soft_sepV)
 
-G.K = full.res[[l]][["res.tb"]]["G.K"]
-V = full.res[[l]][["res.tb"]]["orig_V"]
-pred_GV = res$postGV  
-pred_Glb = apply(pred_GV,1,function(x) {
-  if(all(x == 0)){
-    0
+clinical <- as.data.frame(clinical)
+fac_var <- c("Brain.Region","Sex")
+num_var <- c("Age","pH", "PMI","RIN")
+
+library("RColorBrewer")
+library(pheatmap)
+p.ls = list()
+p.ls.V = cl.ls.V = gene.ls.V = list()
+for (l in 1:6) {
+  if(l == 1){
+    s.idx = df01_1$l
+    res = full.res_V1[[s.idx]][["res"]]
+    V = full.res_V1[[s.idx]][["res.tb"]]["orig_V"]
   }else{
-    which.max(x)
+    s.idx = df01_2$l[l-1]
+    res = full.res[[s.idx]][["res"]]
+    V = full.res[[s.idx]][["res.tb"]]["orig_V"]
   }
-})
-gene.ls = lapply(1:res$V, function(v){
-  row.names(std.data)[which(pred_Glb == v)]
-})
-
-variables = c("Age","Brain","pH","PMI","RIN","Sex")
-TOD = clinical$TOD
-sinT = sin(TOD)
-cosT = cos(TOD)
-
-library(mclust)
-cl.ls = lapply(1:res$V, function(v){
-  apply(res$w_NK_V[[v]],1,which.max)
-})
-
-metric.tb = lapply(cl.ls, function(cl){
-  Age = summary(lm(clinical$Age ~ cl))$coefficients[2,4]
-  Brain = fisher.test(clinical$Brain,cl)$p.value
-  pH = summary(lm(clinical$pH ~ cl))$coefficients[2,4]
-  PMI = summary(lm(clinical$PMI ~ cl))$coefficients[2,4]
-  RIN = summary(lm(clinical$RIN ~ cl))$coefficients[2,4]
-  Sex = fisher.test(clinical$Sex,cl)$p.value
-  sinT = summary(lm(sin(clinical$TOD) ~ cl))$coefficients[2,4]
-  cosT = summary(lm(cos(clinical$TOD) ~ cl))$coefficients[2,4]
   
-  return(c(Age = Age, Brain = Brain, pH = pH, PMI = PMI, RIN = RIN, Sex = Sex, 
-           sinT = sinT, cosT = cosT))
-})
+  pred_GV = res$postGV
+  pred_Glb = apply(pred_GV,1,function(x) {
+    if(all(x == 0)){
+      0
+    }else{
+      which.max(x)
+    }
+  })
+  gene.ls = lapply(1:res$V, function(v){
+    row.names(std.data)[which(pred_Glb == v)]
+  })
+  gene.ls.V[[l]] =  gene.ls
+  cl.ls = lapply(1:res$V, function(v){
+    apply(res$w_NK_V[[v]],1,which.max)
+  })
+  
+  assoc <- list()
+  for (var in fac_var) {
+    clin <- clinical[,var]
+    valid.id <- which(!is.na(clin))
+    clin <- clin[valid.id]
+    pv.ls <- lapply(1:length(cl.ls), function(v){
+      cl <- as.factor(cl.ls[[v]])
+      cl <- cl[valid.id]
+      pv <- fisher.test(clin, cl)$p.value
+      return(pv)
+    })
+    assoc[[var]] <- unlist(pv.ls)
+  }
+  
+  for (var in num_var) {
+    clin <- clinical[,var]
+    pv.ls <- lapply(1:length(cl.ls), function(v){
+      cl <- as.factor(cl.ls[[v]])
+      pv <- kruskal.test(clin ~ cl)$p.value
+      return(pv)
+    })
+    assoc[[var]] <- unlist(pv.ls)
+  }
+  variableP <- do.call(rbind, assoc)
+  colnames(variableP) <- paste0("View_", 1:res$V)
+  if(l == 5){
+    metric.tb = variableP
+  }
+  
+  metric.tblog10 <- -log10(variableP)
+  metric.tblog10 <- as.data.frame(metric.tblog10)
+  metric.tblog10$variables <- rownames(metric.tblog10)
+  p.ls = list()
+  for(v in 1:res$V){
+    df <- metric.tblog10[,c(paste0("View_", v), "variables")]
+    colnames(df)[1] <- "log10P"
+    if(((l==5)&(v==4))|((l==6)&(v==2))){
+      p.ls[[v]] = ggplot(df,aes(x = variables, y = log10P, fill = variables))+
+        geom_bar(stat = "identity") +
+        geom_hline(yintercept = 2.08, color = "red")+
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1, margin = margin(t = -20, unit = "pt")))+
+        theme(axis.title.y = element_blank())+
+        labs(title = paste0("Facet ",v))+
+        scale_x_discrete(name = "")+
+        theme(plot.title = element_text(hjust = 0.5))+
+        theme(legend.position = "none",
+              axis.text=element_text(size=18),axis.title=element_text(size=20))+
+        labs(fill = expression(paste("Cluster label association (", -log[10](P),")")))
+    }else{
+      p.ls[[v]] = ggplot(df,aes(x = variables, y = log10P, fill = variables))+
+        geom_bar(stat = "identity") +
+        geom_hline(yintercept = 2.08, color = "red")+
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1, margin = margin(t = -20, unit = "pt")))+
+        theme(axis.title.y = element_blank())+
+        ylim(c(0,16))+
+        labs(title = paste0("Facet ",v))+
+        scale_x_discrete(name = "")+
+        theme(plot.title = element_text(hjust = 0.5))+
+        theme(legend.position = "none",
+              axis.text=element_text(size=18),axis.title=element_text(size=20))+
+        labs(fill = expression(paste("Cluster label association (", -log[10](P),")")))
+    }
+  }
+  p.ls.V[[l]] <- p.ls
+  cl.ls.V[[l]] = cl.ls
+}
+p.ls.V
 
+## Barplot
+grid.arrange(arrangeGrob(grobs = p.ls.V[[5]], ncol=5))
 
-logp.ls = lapply(1:res$V, function(v){
+# BoxPlot
+variables = rownames(metric.tb)
+gene.ls = gene.ls.final
+logp.ls = lapply(1:5, function(v){
   sub.std.data = std.data[gene.ls[[v]],,drop=F]
   log.df = data.frame(t(apply(sub.std.data, 1, function(y){
     sapply(variables, function(var){
       -log10(summary(lm(y ~ clinical[,var,drop = T]))$coefficients[2,4])
     })
   })))
-  log.df.T = data.frame(t(apply(sub.std.data, 1, function(y){
-    sinT.p = -log10(summary(lm(y ~ sinT))$coefficients[2,4])
-    cosT.p = -log10(summary(lm(y ~ cosT))$coefficients[2,4])
-    return(c(sinT = sinT.p, cosT = cosT.p))
-  })))
-  log.df = cbind(log.df,log.df.T)
   log.df$v = v
   return(log.df)
 })
 logp.df = do.call(rbind,logp.ls)
+
 p.ls = list()
 library(ggpubr)
-
-for(v in 1:res$V){
-  metric.tb.v = metric.tb[[v]]
+library(tidyverse)
+for(v in 1:5){
+  metric.tb.v = metric.tb[,v]
+  names(metric.tb.v) = rownames(metric.tb)
   p.df = logp.df[logp.df$v == v,]
   df = gather(p.df,variable,log10P,-v)
-  #df$sigVar_cat = sapply(1:nrow(df), function(xx) metric.tb.v[df$variable[xx]]<0.05)
   df$sigVar = sapply(1:nrow(df), function(xx) -log10(metric.tb.v[df$variable[xx]]))
   df$sigVar[df$sigVar>6] = 6
   ylim = ifelse(v == 4, 190,30)
   p.ls[[v]] = ggplot(df,aes(x = variable, y = log10P,fill = sigVar))+
     geom_boxplot()+
     theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))+
-    labs(title = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"))+
-    #scale_fill_continuous(name = bquote(Cluster~-log[10]~P))+
+    labs(title = paste0("Facet ",v," (NG=",length(gene.ls[[v]]),")"))+
     scale_fill_gradient(
       limits = c(0,6),
       low = "#C7D1D3",
@@ -671,8 +360,6 @@ for(v in 1:res$V){
       guide = "colourbar",
       aesthetics = "fill"
     )+
-    #scale_colour_manual(values = c("#a3b18a","#e76f51"))+
-    #scale_fill_continuous(limits = c(1.3,6),name = paste0("Cluster -log10P"))+
     scale_y_continuous(limits = c(0,ylim),name = "")+
     scale_x_discrete(name = "")+
     theme(plot.title = element_text(hjust = 0.5))+
@@ -680,311 +367,4 @@ for(v in 1:res$V){
   
 }
 library(gridExtra)
-grid.p[[1]] = grid.arrange(arrangeGrob(grobs= p.ls,nrow = 5))
-
-
-## v=3 plot
-l = df01$l[2]
-res = full.res[[l]][["res"]]
-pred_GV = res$postGV  
-variableP = full.res[[l]][["metric.tb"]]
-
-G.K = full.res[[l]][["res.tb"]]["G.K"]
-V = full.res[[l]][["res.tb"]]["orig_V"]
-pred_GV = res$postGV  
-pred_Glb = apply(pred_GV,1,function(x) {
-  if(all(x == 0)){
-    0
-  }else{
-    which.max(x)
-  }
-})
-gene.ls = lapply(1:res$V, function(v){
-  row.names(std.data)[which(pred_Glb == v)]
-})
-
-variables = c("Age","Brain","pH","PMI","RIN","Sex")
-TOD = clinical$TOD
-sinT = sin(TOD)
-cosT = cos(TOD)
-
-library(mclust)
-cl.ls = lapply(1:res$V, function(v){
-  apply(res$w_NK_V[[v]],1,which.max)
-})
-
-metric.tb = lapply(cl.ls, function(cl){
-  Age = summary(lm(clinical$Age ~ cl))$coefficients[2,4]
-  Brain = fisher.test(clinical$Brain,cl)$p.value
-  pH = summary(lm(clinical$pH ~ cl))$coefficients[2,4]
-  PMI = summary(lm(clinical$PMI ~ cl))$coefficients[2,4]
-  RIN = summary(lm(clinical$RIN ~ cl))$coefficients[2,4]
-  Sex = fisher.test(clinical$Sex,cl)$p.value
-  sinT = summary(lm(sin(clinical$TOD) ~ cl))$coefficients[2,4]
-  cosT = summary(lm(cos(clinical$TOD) ~ cl))$coefficients[2,4]
-  
-  return(c(Age = Age, Brain = Brain, pH = pH, PMI = PMI, RIN = RIN, Sex = Sex, 
-           sinT = sinT, cosT = cosT))
-})
-
-
-logp.ls = lapply(1:res$V, function(v){
-  sub.std.data = std.data[gene.ls[[v]],,drop=F]
-  log.df = data.frame(t(apply(sub.std.data, 1, function(y){
-    sapply(variables, function(var){
-      -log10(summary(lm(y ~ clinical[,var,drop = T]))$coefficients[2,4])
-    })
-  })))
-  log.df.T = data.frame(t(apply(sub.std.data, 1, function(y){
-    sinT.p = -log10(summary(lm(y ~ sinT))$coefficients[2,4])
-    cosT.p = -log10(summary(lm(y ~ cosT))$coefficients[2,4])
-    return(c(sinT = sinT.p, cosT = cosT.p))
-  })))
-  log.df = cbind(log.df,log.df.T)
-  log.df$v = v
-  return(log.df)
-})
-logp.df = do.call(rbind,logp.ls)
-logp.df2 = logp.df
-logp.df2$v[logp.df$v == 2] = 3
-logp.df2$v[logp.df$v == 3] = 2
-
-p.ls = list()
-library(ggpubr)
-for(v in 1:res$V){
-  metric.tb.v = metric.tb[[v]]
-  p.df = logp.df2[logp.df2$v == v,]
-  df = gather(p.df,variable,log10P,-v)
-  #df$sigVar_cat = sapply(1:nrow(df), function(xx) metric.tb.v[df$variable[xx]]<0.05)
-  df$sigVar = sapply(1:nrow(df), function(xx) -log10(metric.tb.v[df$variable[xx]]))
-  df$sigVar[df$sigVar>6] = 6
-  ylim = ifelse(v == 4, 190,30)
-  p.ls[[v]] = ggplot(df,aes(x = variable, y = log10P,fill = sigVar))+
-    geom_boxplot()+
-    theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))+
-    labs(title = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"))+
-    #scale_fill_continuous(name = bquote(Cluster~-log[10]~P))+
-    scale_fill_gradient(
-      limits = c(0,6),
-      low = "#C7D1D3",
-      high = "#18C3E6",
-      space = "Lab",
-      na.value = "#C7D1D3",
-      guide = "colourbar",
-      aesthetics = "fill"
-    )+
-    #scale_colour_manual(values = c("#a3b18a","#e76f51"))+
-    #scale_fill_continuous(limits = c(1.3,6),name = paste0("Cluster -log10P"))+
-    scale_y_continuous(limits = c(0,ylim),name = "")+
-    scale_x_discrete(name = "")+
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(legend.position = "none",axis.text=element_text(size=11),axis.title=element_text(size=13))
-  
-}
-library(gridExtra)
-grid.p[[2]] = grid.arrange(arrangeGrob(grobs= p.ls,nrow = 5))
-
-## v=4 plot
-l = df01$l[3]
-res = full.res[[l]][["res"]]
-pred_GV = res$postGV  
-variableP = full.res[[l]][["metric.tb"]]
-
-G.K = full.res[[l]][["res.tb"]]["G.K"]
-V = full.res[[l]][["res.tb"]]["orig_V"]
-pred_GV = res$postGV  
-pred_Glb = apply(pred_GV,1,function(x) {
-  if(all(x == 0)){
-    0
-  }else{
-    which.max(x)
-  }
-})
-gene.ls = lapply(1:res$V, function(v){
-  row.names(std.data)[which(pred_Glb == v)]
-})
-
-variables = c("Age","Brain","pH","PMI","RIN","Sex")
-TOD = clinical$TOD
-sinT = sin(TOD)
-cosT = cos(TOD)
-
-library(mclust)
-cl.ls = lapply(1:res$V, function(v){
-  apply(res$w_NK_V[[v]],1,which.max)
-})
-
-metric.tb = lapply(cl.ls, function(cl){
-  Age = summary(lm(clinical$Age ~ cl))$coefficients[2,4]
-  Brain = fisher.test(clinical$Brain,cl)$p.value
-  pH = summary(lm(clinical$pH ~ cl))$coefficients[2,4]
-  PMI = summary(lm(clinical$PMI ~ cl))$coefficients[2,4]
-  RIN = summary(lm(clinical$RIN ~ cl))$coefficients[2,4]
-  Sex = fisher.test(clinical$Sex,cl)$p.value
-  sinT = summary(lm(sin(clinical$TOD) ~ cl))$coefficients[2,4]
-  cosT = summary(lm(cos(clinical$TOD) ~ cl))$coefficients[2,4]
-  
-  return(c(Age = Age, Brain = Brain, pH = pH, PMI = PMI, RIN = RIN, Sex = Sex, 
-           sinT = sinT, cosT = cosT))
-})
-
-
-logp.ls = lapply(1:res$V, function(v){
-  sub.std.data = std.data[gene.ls[[v]],,drop=F]
-  log.df = data.frame(t(apply(sub.std.data, 1, function(y){
-    sapply(variables, function(var){
-      -log10(summary(lm(y ~ clinical[,var,drop = T]))$coefficients[2,4])
-    })
-  })))
-  log.df.T = data.frame(t(apply(sub.std.data, 1, function(y){
-    sinT.p = -log10(summary(lm(y ~ sinT))$coefficients[2,4])
-    cosT.p = -log10(summary(lm(y ~ cosT))$coefficients[2,4])
-    return(c(sinT = sinT.p, cosT = cosT.p))
-  })))
-  log.df = cbind(log.df,log.df.T)
-  log.df$v = v
-  return(log.df)
-})
-logp.df = do.call(rbind,logp.ls)
-logp.df2 = logp.df
-logp.df2$v[logp.df$v == 2] = 3
-logp.df2$v[logp.df$v == 3] = 2
-
-p.ls = list()
-library(ggpubr)
-for(v in 1:res$V){
-  metric.tb.v = metric.tb[[v]]
-  p.df = logp.df2[logp.df2$v == v,]
-  df = gather(p.df,variable,log10P,-v)
-  #df$sigVar_cat = sapply(1:nrow(df), function(xx) metric.tb.v[df$variable[xx]]<0.05)
-  df$sigVar = sapply(1:nrow(df), function(xx) -log10(metric.tb.v[df$variable[xx]]))
-  df$sigVar[df$sigVar>6] = 6
-  ylim = 30
-  p.ls[[v]] = ggplot(df,aes(x = variable, y = log10P,fill = sigVar))+
-    geom_boxplot()+
-    theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))+
-    labs(title = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"))+
-    #scale_fill_continuous(name = bquote(Cluster~-log[10]~P))+
-    scale_fill_gradient(
-      limits = c(0,6),
-      low = "#C7D1D3",
-      high = "#18C3E6",
-      space = "Lab",
-      na.value = "#C7D1D3",
-      guide = "colourbar",
-      aesthetics = "fill"
-    )+
-    #scale_colour_manual(values = c("#a3b18a","#e76f51"))+
-    #scale_fill_continuous(limits = c(1.3,6),name = paste0("Cluster -log10P"))+
-    scale_y_continuous(limits = c(0,ylim),name = "")+
-    scale_x_discrete(name = "")+
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(legend.position = "none",axis.text=element_text(size=11),axis.title=element_text(size=13))
-  
-}
-library(gridExtra)
-grid.p[[3]] = grid.arrange(arrangeGrob(grobs= p.ls,nrow = 5))
-
-## v=5 plot
-l = df01$l[4]
-res = full.res[[l]][["res"]]
-pred_GV = res$postGV  
-variableP = full.res[[l]][["metric.tb"]]
-
-G.K = full.res[[l]][["res.tb"]]["G.K"]
-V = full.res[[l]][["res.tb"]]["orig_V"]
-pred_GV = res$postGV  
-pred_Glb = apply(pred_GV,1,function(x) {
-  if(all(x == 0)){
-    0
-  }else{
-    which.max(x)
-  }
-})
-gene.ls = lapply(1:res$V, function(v){
-  row.names(std.data)[which(pred_Glb == v)]
-})
-
-variables = c("Age","Brain","pH","PMI","RIN","Sex")
-TOD = clinical$TOD
-sinT = sin(TOD)
-cosT = cos(TOD)
-
-library(mclust)
-cl.ls = lapply(1:res$V, function(v){
-  apply(res$w_NK_V[[v]],1,which.max)
-})
-
-metric.tb = lapply(cl.ls, function(cl){
-  Age = summary(lm(clinical$Age ~ cl))$coefficients[2,4]
-  Brain = fisher.test(clinical$Brain,cl)$p.value
-  pH = summary(lm(clinical$pH ~ cl))$coefficients[2,4]
-  PMI = summary(lm(clinical$PMI ~ cl))$coefficients[2,4]
-  RIN = summary(lm(clinical$RIN ~ cl))$coefficients[2,4]
-  Sex = fisher.test(clinical$Sex,cl)$p.value
-  sinT = summary(lm(sin(clinical$TOD) ~ cl))$coefficients[2,4]
-  cosT = summary(lm(cos(clinical$TOD) ~ cl))$coefficients[2,4]
-  
-  return(c(Age = Age, Brain = Brain, pH = pH, PMI = PMI, RIN = RIN, Sex = Sex, 
-           sinT = sinT, cosT = cosT))
-})
-
-
-logp.ls = lapply(1:res$V, function(v){
-  sub.std.data = std.data[gene.ls[[v]],,drop=F]
-  log.df = data.frame(t(apply(sub.std.data, 1, function(y){
-    sapply(variables, function(var){
-      -log10(summary(lm(y ~ clinical[,var,drop = T]))$coefficients[2,4])
-    })
-  })))
-  log.df.T = data.frame(t(apply(sub.std.data, 1, function(y){
-    sinT.p = -log10(summary(lm(y ~ sinT))$coefficients[2,4])
-    cosT.p = -log10(summary(lm(y ~ cosT))$coefficients[2,4])
-    return(c(sinT = sinT.p, cosT = cosT.p))
-  })))
-  log.df = cbind(log.df,log.df.T)
-  log.df$v = v
-  return(log.df)
-})
-logp.df = do.call(rbind,logp.ls)
-logp.df2 = logp.df
-
-p.ls = list()
-library(ggpubr)
-for(v in 1:res$V){
-  metric.tb.v = metric.tb[[v]]
-  p.df = logp.df2[logp.df2$v == v,]
-  df = gather(p.df,variable,log10P,-v)
-  #df$sigVar_cat = sapply(1:nrow(df), function(xx) metric.tb.v[df$variable[xx]]<0.05)
-  df$sigVar = sapply(1:nrow(df), function(xx) -log10(metric.tb.v[df$variable[xx]]))
-  df$sigVar[df$sigVar>6] = 6
-  ylim = ifelse(v == 4, 190,30)
-  p.ls[[v]] = ggplot(df,aes(x = variable, y = log10P,fill = sigVar))+
-    geom_boxplot()+
-    theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))+
-    labs(title = paste0("View ",v," (NG=",length(gene.ls[[v]]),")"))+
-    #scale_fill_continuous(name = bquote(Cluster~-log[10]~P))+
-    scale_fill_gradient(
-      limits = c(0,6),
-      low = "#C7D1D3",
-      high = "#18C3E6",
-      space = "Lab",
-      na.value = "#C7D1D3",
-      guide = "colourbar",
-      aesthetics = "fill"
-    )+
-    #scale_colour_manual(values = c("#a3b18a","#e76f51"))+
-    #scale_fill_continuous(limits = c(1.3,6),name = paste0("Cluster -log10P"))+
-    scale_y_continuous(limits = c(0,ylim),name = "")+
-    scale_x_discrete(name = "")+
-    theme(plot.title = element_text(hjust = 0.5))+
-    theme(legend.position = "none",axis.text=element_text(size=11),axis.title=element_text(size=13))
-  
-}
-library(gridExtra)
-grid.p[[4]] = grid.arrange(arrangeGrob(grobs= p.ls,nrow = 5))
-png("~/manuscript/figures/BA11_BA47_boxplot_V2345.png",width = 1750,height = 2000,
-    res=150)
-grid.arrange(grobs = grid.p,ncol = 4)
-dev.off()
-
+grid.arrange(arrangeGrob(grobs= p.ls,ncol=5))
